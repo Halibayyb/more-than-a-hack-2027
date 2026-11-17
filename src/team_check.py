@@ -15,7 +15,7 @@
    (count, frames; FROZEN_FRAMES rule), verdict.
    -> out/team_check.txt
 
-3. The frames of out/clean_table.csv where the ball is seen but no usable Barcelona slot exists:
+3. The frames of out/clean_table.csv where the ball is seen but no usable home slot exists:
    stretches, longest stretch, how many fall in the first 30 s of a half.
 
 Usage (from the repo root):
@@ -329,12 +329,12 @@ def no_home_slot(table_path, halves):
         lengths = np.diff(np.concatenate(([0], breaks + 1, [len(v)])))
     else:
         lengths = np.array([0])
-    # What the tracking shows in those frames: how many Barcelona slots are present / frozen.
+    # What the tracking shows in those frames: how many home slots are present / frozen.
     present_h, frozen_h = [], []
     for h, r in halves.items():
         idx = np.searchsorted(r["vf"], v[(v >= r["vf"][0]) & (v <= r["vf"][-1])])
         if len(idx):
-            home = r["home_mask"]        # nominal Barcelona slots
+            home = r["home_mask"]        # nominal home slots
             present_h.extend(r["present"][idx][:, home].sum(axis=1).tolist())
             frozen_h.extend((r["present"][idx] & r["frozen"][idx])[:, home].sum(axis=1).tolist())
     return {"frames": len(v), "stretches": int(len(lengths) if len(v) else 0),
@@ -514,11 +514,11 @@ def main():
                    if r["verdict"] in ("acted as other team's keeper", "mostly frozen")]
         if flagged:
             print("  flagged slots: %s" % ", ".join("%d (%s)" % f for f in flagged))
-    print("ball seen, no usable Barcelona slot: %d frames (half 1: %d, half 2: %d) in %d stretches, "
+    print("ball seen, no usable home slot: %d frames (half 1: %d, half 2: %d) in %d stretches, "
           "longest %d frames; %d frames in the first %d s of a half" % (
               gap["frames"], gap["halves"].get(1, 0), gap["halves"].get(2, 0), gap["stretches"],
               gap["longest"], gap["first_30s"], FIRST_SECONDS))
-    print("  in those frames: mean %.1f Barcelona slots present, of which %.1f frozen" % (
+    print("  in those frames: mean %.1f home slots present, of which %.1f frozen" % (
         gap["home_present_mean"], gap["home_present_frozen_mean"]))
     print("malformed lines skipped: %d   run time %.1f s" % (malformed, time.time() - t0))
 

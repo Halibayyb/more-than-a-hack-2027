@@ -9,7 +9,7 @@ three key words: **close** (a player is within reach of the ball), **deflect** (
 player but he doesn't keep it) or **own** (he keeps it: a kick, or control for at least 0.4 s). Only
 an `own` changes the team in possession; between owns the label holds. Dead balls (ball out,
 kick-offs, restarts) become `D`, confirmed by Smart Tagging where it applies. The method, every rule
-and threshold, and the limitations are in the
+and threshold are in the
 **[technical document](docs/InsightLens.pdf)**.
 
 ### How to run
@@ -47,8 +47,8 @@ All thresholds are in `src/config.py`, each with its football reason. Every step
 | 6 | `dead_ball.py` | tracking, Smart Tagging, `clean_table.csv`, `touches.csv`, `keepers.csv`, `events.csv`, `labels_raw.csv` | `labels_dead.csv` |
 | 7 | `make_submission.py` | `labels_raw.csv`, `labels_dead.csv` | `submission.csv` (also copied to `evaluation/results/team_v1.csv`) |
 
-1. **clean_table** — one row per graded frame: ball position and speed, nearest Barcelona and
-   Athletic player, with stuck and abandoned tracking boxes skipped.
+1. **clean_table** — one row per graded frame: ball position and speed, nearest home and
+   away player, with stuck and abandoned tracking boxes skipped.
 2. **timeutil** — frame ↔ time helpers (graded halves, video and match clock) built on `games.py`.
 3. **team_check** — finds each team's goalkeeper per frame, even when the tracker gives him a box of
    the other team, and reports per-slot tracking facts.
