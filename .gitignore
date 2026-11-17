@@ -36,6 +36,20 @@ data/*
 *.gzip
 *.pl3container
 
+# -- team pipeline: match data and anything derived from it ----------------------------------
+# data/* above already excludes the bundle; these catch copies outside data/. A bare "data/" is
+# deliberately NOT used: it would stop the !data/README.md exception from working.
+out/
+*_atd.txt
+*_atd.xml
+*_smart_tagging.xml
+*_homography.csv
+# per-frame tracking extracts written by src/ exploration scripts
+first30s.txt
+kickoff.csv
+transitions*.txt
+.ipynb_checkpoints/
+
 # -- internal documents ---------------------------------------------------------------------------
 # OVERVIEW.md -- the institutional description of the competition -- IS committed. It is the only
 # place that explains why the format changed from 2026, and a document like that circulating by
@@ -62,3 +76,6 @@ __pycache__/
 venv/
 env/
 .DS_Store
+
+# our technical document is the one PDF that is published (the *.pdf rule above stays for the rest)
+!docs/InsightLens.pdf

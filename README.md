@@ -1,3 +1,72 @@
+# InsightLens — rules-based possession labelling
+
+**Team InsightLens:** Vannakhone Ounkham (Bay), Xayophone Chanthavongsa (Victor),
+Thiradeth Khamhoung (Bart). Contact: halibayyb@gmail.com
+
+Our pipeline labels every frame of the match `H` / `A` / `D` / `X` with football rules and no
+training. It cleans the automatic tracking, finds the ball's touches, and gives each touch one of
+three key words: **close** (a player is within reach of the ball), **deflect** (the ball touches a
+player but he doesn't keep it) or **own** (he keeps it: a kick, or control for at least 0.4 s). Only
+an `own` changes the team in possession; between owns the label holds. Dead balls (ball out,
+kick-offs, restarts) become `D`, confirmed by Smart Tagging where it applies. The method, every rule
+and threshold, and the limitations are in the
+**[technical document](docs/InsightLens.pdf)**.
+
+### How to run
+
+```bash
+python3.14 -m venv .venv && source .venv/bin/activate   # Python 3.14.4, see .python-version
+pip install -r requirements-team.txt          # pinned: numpy 2.5.4, pandas 3.1.1
+
+# the match bundle (not in this repository) goes in ./data/tactical and ./data/broadcast,
+# or anywhere else with:  export MTAH_DATA_DIR=/path/to/bundle
+
+python src/make_submission.py --rebuild       # the one command (~13 s): writes out/submission.csv
+python evaluation/validate_submission.py out/submission.csv
+```
+
+The command also writes `out/InsightLens.csv`, a byte-identical copy and the file to upload.
+
+Expected sha256 of `out/submission.csv`:
+`564e8613cba5826ad6c865266e4843b3d0b270d081a8e3617d637dcb251977a0` (`shasum -a 256 out/submission.csv`).
+Verified from a clean copy on Python 3.14.4 with the pins in `requirements-team.txt`, and on
+Python 3.11.18 with numpy 2.4.6 (numpy 2.5.4 needs Python ≥ 3.12) and the other pins unchanged.
+
+### Structure
+
+All thresholds are in `src/config.py`, each with its football reason. Every step writes to `out/`
+(git-ignored); `make_submission.py` runs them in order.
+
+| Step | Script in `src/` | Reads | Writes in `out/` |
+|---|---|---|---|
+| 1 | `clean_table.py` | tactical tracking (`_atd.txt`, `_atd.xml`) | `clean_table.csv` |
+| 2 | `timeutil.py` (module) | `games.py` | — |
+| 3 | `team_check.py` | tactical tracking, `clean_table.csv` | `keepers.csv`, `team_check.txt` |
+| 4 | `ball_trips.py` | `clean_table.csv` | `touches.csv`, `ball_trips.csv` |
+| 5 | `possession.py` | tracking, `clean_table.csv`, `touches.csv`, `ball_trips.csv`, `keepers.csv` | `events.csv`, `labels_raw.csv` |
+| 6 | `dead_ball.py` | tracking, Smart Tagging, `clean_table.csv`, `touches.csv`, `keepers.csv`, `events.csv`, `labels_raw.csv` | `labels_dead.csv` |
+| 7 | `make_submission.py` | `labels_raw.csv`, `labels_dead.csv` | `submission.csv` (also copied to `evaluation/results/team_v1.csv`) |
+
+1. **clean_table** — one row per graded frame: ball position and speed, nearest Barcelona and
+   Athletic player, with stuck and abandoned tracking boxes skipped.
+2. **timeutil** — frame ↔ time helpers (graded halves, video and match clock) built on `games.py`.
+3. **team_check** — finds each team's goalkeeper per frame, even when the tracker gives him a box of
+   the other team, and reports per-slot tracking facts.
+4. **ball_trips** — cleans the ball path, detects touches (speed up, speed down, stop-and-go, turn)
+   and splits the path into trips between touches.
+5. **possession** — names the player at each touch, turns it into close / deflect / own events and
+   holds the team in possession between owns.
+6. **dead_ball** — marks `D` for ball out of play, before kick-offs and after goals, and at
+   throw-in and corner restarts confirmed by Smart Tagging.
+7. **make_submission** — runs every step, merges `X` / `D` / `H` / `A`, smooths very short runs,
+   writes and validates `out/submission.csv`.
+
+---
+
+Everything below this line is the organisers' original README.
+
+---
+
 # More than a Hack 2027 — Phase 1: Ball Possession
 
 **Organised by [Metrica Sports](https://metrica-sports.com), [FC Barcelona](https://www.fcbarcelona.com)

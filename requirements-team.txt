@@ -1,0 +1,12 @@
+# Exact versions used to produce our submission (Python 3.14.4, macOS). The pipeline in src/
+# imports only the standard library, numpy and pandas (plus pandas' own dependencies below);
+# it needs neither kloppy nor matplotlib.
+#
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements-team.txt
+numpy==2.5.4
+pandas==3.1.1
+python-dateutil==4.0.0
+pytz==2026.6
+six==1.17.0
+tzdata==2026.6
